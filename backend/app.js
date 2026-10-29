@@ -13,16 +13,29 @@ dotenv.config();
 
 const app = express();
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://nxtwave-growth-engine-eight.vercel.app",
+];
+
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL,
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
 
 app.use(express.json());
 app.use(morgan("dev"));
+
 app.use("/api/admin", adminRoutes);
+
 app.get("/", (req, res) => {
   res.json({
     success: true,
@@ -32,7 +45,6 @@ app.get("/", (req, res) => {
 
 app.use("/api/ambassadors", ambassadorRoutes);
 app.use("/api/copilot", copilotRoutes);
-app.use("/api/ambassadors", ambassadorRoutes);
 app.use("/api/students", studentRoutes);
 
 const PORT = process.env.PORT || 5000;
